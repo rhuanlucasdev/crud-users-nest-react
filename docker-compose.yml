@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: crud-postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cruddb
+      POSTGRES_USER: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crud-network
+
+  # Backend (opcional - descomente se quiser)
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: crud-backend
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   environment:
+  #     DATABASE_URL: postgresql://postgres:postgres@postgres:5432/cruddb
+  #   networks:
+  #     - crud-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  crud-network:
+    driver: bridge
