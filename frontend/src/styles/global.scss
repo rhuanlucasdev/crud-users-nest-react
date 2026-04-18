@@ -365,7 +365,9 @@ button:disabled {
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
   outline: none;
 }
 
@@ -399,7 +401,10 @@ button:disabled {
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  transition: background 0.2s, border-color 0.2s, transform 0.12s ease;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.12s ease;
 }
 
 .pagination-btn:hover:not(:disabled) {

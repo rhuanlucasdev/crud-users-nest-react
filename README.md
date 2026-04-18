@@ -309,27 +309,6 @@ npm run lint          # Rodar linter
 
 ---
 
-## 🤝 Contribuindo
-
-1. Crie uma branch: `git checkout -b feature/MinhaFeature`
-2. Commit suas mudanças: `git commit -m "feat: descrição da feature"`
-3. Push para branch: `git push origin feature/MinhaFeature`
-4. Abra um Pull Request
-
----
-
-## 📄 Licença
-
-Este projeto está sob licença MIT.
-
----
-
 ## 👥 Autores
 
-Desenvolvido com ❤️ por [@seu-usuario](https://github.com/seu-usuario)
-
----
-
-## 📞 Suporte
-
-Encontrou um bug? Abra uma issue no GitHub! 🐛
+Desenvolvido por [@rhuanlucasdev](https://github.com/rhuanlucasdev)

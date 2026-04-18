@@ -266,14 +266,19 @@ function App() {
 
       <div className="pagination-section">
         <div className="pagination-info">
-          Mostrando {users.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} a{" "}
-          {Math.min(currentPage * itemsPerPage, users.length)} de {users.length} usuarios
+          Mostrando{" "}
+          {users.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} a{" "}
+          {Math.min(currentPage * itemsPerPage, users.length)} de {users.length}{" "}
+          usuarios
         </div>
 
         <div className="pagination-controls">
           <div className="items-per-page">
             <label>Por página:</label>
-            <select value={itemsPerPage} onChange={(e) => handleChangeItemsPerPage(Number(e.target.value))}>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => handleChangeItemsPerPage(Number(e.target.value))}
+            >
               <option value={10}>10</option>
               <option value={20}>20</option>
             </select>
