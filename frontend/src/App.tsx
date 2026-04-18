@@ -38,10 +38,10 @@ function App() {
   }, []);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Users</h1>
+    <div className="container">
+      <h1>User Manager</h1>
 
-      <div>
+      <div className="form">
         <input
           placeholder="name"
           value={name}
@@ -57,7 +57,7 @@ function App() {
         <button onClick={createUser}>Create</button>
       </div>
 
-      <TableContainer component={Paper} style={{ marginTop: 20 }}>
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
