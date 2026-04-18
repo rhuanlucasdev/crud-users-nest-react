@@ -31,9 +31,13 @@ function App() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [toastSeverity, setToastSeverity] = useState<"success" | "error">("success");
+  const [toastSeverity, setToastSeverity] = useState<"success" | "error">(
+    "success",
+  );
 
   const fetchUsers = async () => {
     const response = await api.get("/users");
@@ -41,7 +45,10 @@ function App() {
     setUsers(sortedUsers);
   };
 
-  const showToast = (message: string, severity: "success" | "error" = "success") => {
+  const showToast = (
+    message: string,
+    severity: "success" | "error" = "success",
+  ) => {
     setToastMessage(message);
     setToastSeverity(severity);
     setToastOpen(true);
@@ -59,9 +66,18 @@ function App() {
     }
   };
 
-  const deleteUser = async (id: number) => {
+  const handleOpenDeleteConfirm = (user: User) => {
+    setUserToDelete(user);
+    setOpenDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+
     try {
-      await api.delete(`/users/${id}`);
+      await api.delete(`/users/${userToDelete.id}`);
+      setOpenDeleteConfirm(false);
+      setUserToDelete(null);
       fetchUsers();
       showToast("Usuário deletado com sucesso!", "success");
     } catch (error) {
@@ -165,7 +181,7 @@ function App() {
                       </Button>
                       <Button
                         className="btn-danger"
-                        onClick={() => deleteUser(user.id)}
+                        onClick={() => handleOpenDeleteConfirm(user)}
                         variant="contained"
                         size="small"
                       >
@@ -216,6 +232,32 @@ function App() {
         </DialogActions>
       </Dialog>
 
+      <Dialog
+        open={openDeleteConfirm}
+        onClose={() => setOpenDeleteConfirm(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Confirmar Exclusão</DialogTitle>
+        <DialogContent>
+          <p>
+            Tem certeza que deseja deletar o usuário <strong>{userToDelete?.name}</strong>? Esta ação é irreversível.
+          </p>
+        </DialogContent>
+
+        <DialogActions>
+          <button className="btn-danger" onClick={() => setOpenDeleteConfirm(false)}>
+            Cancelar
+          </button>
+          <button
+            onClick={handleConfirmDelete}
+            style={{ background: "#ef4444", color: "white" }}
+          >
+            Deletar
+          </button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         open={toastOpen}
         autoHideDuration={4000}
@@ -227,7 +269,8 @@ function App() {
           severity={toastSeverity}
           sx={{
             width: "100%",
-            backgroundColor: toastSeverity === "success" ? "#22c55e" : "#ef4444",
+            backgroundColor:
+              toastSeverity === "success" ? "#22c55e" : "#ef4444",
             color: "#ffffff",
             fontWeight: 600,
             fontSize: "14px",
