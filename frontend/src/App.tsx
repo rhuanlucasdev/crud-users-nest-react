@@ -13,6 +13,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 type User = {
@@ -29,22 +31,42 @@ function App() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastSeverity, setToastSeverity] = useState<"success" | "error">("success");
 
   const fetchUsers = async () => {
     const response = await api.get("/users");
-    setUsers(response.data);
+    const sortedUsers = (response.data as User[]).sort((a, b) => a.id - b.id);
+    setUsers(sortedUsers);
+  };
+
+  const showToast = (message: string, severity: "success" | "error" = "success") => {
+    setToastMessage(message);
+    setToastSeverity(severity);
+    setToastOpen(true);
   };
 
   const createUser = async () => {
-    await api.post("/users", { name, email });
-    setName("");
-    setEmail("");
-    fetchUsers();
+    try {
+      await api.post("/users", { name, email });
+      setName("");
+      setEmail("");
+      fetchUsers();
+      showToast("Usuário criado com sucesso!", "success");
+    } catch (error) {
+      showToast("Erro ao criar usuário", "error");
+    }
   };
 
   const deleteUser = async (id: number) => {
-    await api.delete(`/users/${id}`);
-    fetchUsers();
+    try {
+      await api.delete(`/users/${id}`);
+      fetchUsers();
+      showToast("Usuário deletado com sucesso!", "success");
+    } catch (error) {
+      showToast("Erro ao deletar usuário", "error");
+    }
   };
 
   const handleOpenEdit = (user: User) => {
@@ -57,13 +79,18 @@ function App() {
   const handleUpdate = async () => {
     if (!selectedUserId) return;
 
-    await api.patch(`/users/${selectedUserId}`, {
-      name: editName,
-      email: editEmail,
-    });
+    try {
+      await api.patch(`/users/${selectedUserId}`, {
+        name: editName,
+        email: editEmail,
+      });
 
-    setOpenEdit(false);
-    fetchUsers();
+      setOpenEdit(false);
+      fetchUsers();
+      showToast("Usuário atualizado com sucesso!", "success");
+    } catch (error) {
+      showToast("Erro ao atualizar usuário", "error");
+    }
   };
 
   useEffect(() => {
@@ -188,6 +215,21 @@ function App() {
           </button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={4000}
+        onClose={() => setToastOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setToastOpen(false)}
+          severity={toastSeverity}
+          sx={{ width: "100%" }}
+        >
+          {toastMessage}
+        </Alert>
+      </Snackbar>
     </main>
   );
 }
