@@ -53,6 +53,8 @@ function App() {
   const [toastSeverity, setToastSeverity] = useState<"success" | "error">(
     "success",
   );
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const fetchUsers = async (filter: string = "") => {
     const params = filter ? { name: filter } : {};
@@ -63,7 +65,27 @@ function App() {
 
   useEffect(() => {
     fetchUsers(searchFilter);
+    setCurrentPage(1); // Reset para página 1 quando filtro mudar
   }, [searchFilter]);
+
+  const getPaginatedUsers = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return users.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    return Math.ceil(users.length / itemsPerPage);
+  };
+
+  const handleChangePage = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const handleChangeItemsPerPage = (value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1); // Reset para página 1
+  };
 
   const showToast = (
     message: string,
@@ -210,7 +232,7 @@ function App() {
                 </TableCell>
               </TableRow>
             ) : (
-              users.map((user) => (
+              getPaginatedUsers().map((user) => (
                 <TableRow key={user.id} hover>
                   <TableCell>{user.id}</TableCell>
                   <TableCell>{user.name}</TableCell>
@@ -241,6 +263,45 @@ function App() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <div className="pagination-section">
+        <div className="pagination-info">
+          Mostrando {users.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} a{" "}
+          {Math.min(currentPage * itemsPerPage, users.length)} de {users.length} usuarios
+        </div>
+
+        <div className="pagination-controls">
+          <div className="items-per-page">
+            <label>Por página:</label>
+            <select value={itemsPerPage} onChange={(e) => handleChangeItemsPerPage(Number(e.target.value))}>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+
+          <div className="page-buttons">
+            <button
+              className="pagination-btn"
+              onClick={() => handleChangePage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              ← Anterior
+            </button>
+
+            <div className="page-indicator">
+              Página {currentPage} de {getTotalPages()}
+            </div>
+
+            <button
+              className="pagination-btn"
+              onClick={() => handleChangePage(currentPage + 1)}
+              disabled={currentPage === getTotalPages()}
+            >
+              Próxima →
+            </button>
+          </div>
+        </div>
+      </div>
 
       <Dialog
         open={openEdit}
