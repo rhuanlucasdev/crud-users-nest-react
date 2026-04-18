@@ -225,7 +225,16 @@ function App() {
         <Alert
           onClose={() => setToastOpen(false)}
           severity={toastSeverity}
-          sx={{ width: "100%" }}
+          sx={{
+            width: "100%",
+            backgroundColor: toastSeverity === "success" ? "#22c55e" : "#ef4444",
+            color: "#ffffff",
+            fontWeight: 600,
+            fontSize: "14px",
+            "& .MuiAlert-icon": {
+              color: "#ffffff",
+            },
+          }}
         >
           {toastMessage}
         </Alert>
