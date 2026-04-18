@@ -23,14 +23,29 @@ type User = {
   email: string;
 };
 
+interface CreateFormState {
+  name: string;
+  email: string;
+}
+
+interface EditFormState {
+  name: string;
+  email: string;
+}
+
 function App() {
   const [users, setUsers] = useState<User[]>([]);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [createForm, setCreateForm] = useState<CreateFormState>({
+    name: "",
+    email: "",
+  });
+  const [editForm, setEditForm] = useState<EditFormState>({
+    name: "",
+    email: "",
+  });
+  const [searchFilter, setSearchFilter] = useState("");
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editEmail, setEditEmail] = useState("");
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [toastOpen, setToastOpen] = useState(false);
@@ -39,11 +54,16 @@ function App() {
     "success",
   );
 
-  const fetchUsers = async () => {
-    const response = await api.get("/users");
+  const fetchUsers = async (filter: string = "") => {
+    const params = filter ? { name: filter } : {};
+    const response = await api.get("/users", { params });
     const sortedUsers = (response.data as User[]).sort((a, b) => a.id - b.id);
     setUsers(sortedUsers);
   };
+
+  useEffect(() => {
+    fetchUsers(searchFilter);
+  }, [searchFilter]);
 
   const showToast = (
     message: string,
@@ -56,10 +76,12 @@ function App() {
 
   const createUser = async () => {
     try {
-      await api.post("/users", { name, email });
-      setName("");
-      setEmail("");
-      fetchUsers();
+      await api.post("/users", {
+        name: createForm.name,
+        email: createForm.email,
+      });
+      setCreateForm({ name: "", email: "" });
+      fetchUsers(searchFilter);
       showToast("Usuário criado com sucesso!", "success");
     } catch (error) {
       showToast("Erro ao criar usuário", "error");
@@ -78,7 +100,7 @@ function App() {
       await api.delete(`/users/${userToDelete.id}`);
       setOpenDeleteConfirm(false);
       setUserToDelete(null);
-      fetchUsers();
+      fetchUsers(searchFilter);
       showToast("Usuário deletado com sucesso!", "success");
     } catch (error) {
       showToast("Erro ao deletar usuário", "error");
@@ -87,8 +109,7 @@ function App() {
 
   const handleOpenEdit = (user: User) => {
     setSelectedUserId(user.id);
-    setEditName(user.name);
-    setEditEmail(user.email);
+    setEditForm({ name: user.name, email: user.email });
     setOpenEdit(true);
   };
 
@@ -97,16 +118,20 @@ function App() {
 
     try {
       await api.patch(`/users/${selectedUserId}`, {
-        name: editName,
-        email: editEmail,
+        name: editForm.name,
+        email: editForm.email,
       });
 
       setOpenEdit(false);
-      fetchUsers();
+      fetchUsers(searchFilter);
       showToast("Usuário atualizado com sucesso!", "success");
     } catch (error) {
       showToast("Erro ao atualizar usuário", "error");
     }
+  };
+
+  const handleClearFilter = () => {
+    setSearchFilter("");
   };
 
   useEffect(() => {
@@ -129,19 +154,40 @@ function App() {
         <div className="form form--compact">
           <input
             placeholder="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={createForm.name}
+            onChange={(e) =>
+              setCreateForm({ ...createForm, name: e.target.value })
+            }
           />
 
           <input
             placeholder="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={createForm.email}
+            onChange={(e) =>
+              setCreateForm({ ...createForm, email: e.target.value })
+            }
           />
 
-          <button onClick={createUser} disabled={!name.trim() || !email.trim()}>
+          <button
+            onClick={createUser}
+            disabled={!createForm.name.trim() || !createForm.email.trim()}
+          >
             Create user
           </button>
+        </div>
+
+        <div className="filter-section">
+          <input
+            className="search-input"
+            placeholder="Buscar por nome..."
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+          />
+          {searchFilter && (
+            <button className="btn-clear-filter" onClick={handleClearFilter}>
+              Limpar
+            </button>
+          )}
         </div>
       </Paper>
 
@@ -207,14 +253,18 @@ function App() {
           <div className="form form--dialog">
             <input
               placeholder="name"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
+              value={editForm.name}
+              onChange={(e) =>
+                setEditForm({ ...editForm, name: e.target.value })
+              }
             />
 
             <input
               placeholder="email"
-              value={editEmail}
-              onChange={(e) => setEditEmail(e.target.value)}
+              value={editForm.email}
+              onChange={(e) =>
+                setEditForm({ ...editForm, email: e.target.value })
+              }
             />
           </div>
         </DialogContent>
@@ -225,7 +275,7 @@ function App() {
           </button>
           <button
             onClick={handleUpdate}
-            disabled={!editName.trim() || !editEmail.trim()}
+            disabled={!editForm.name.trim() || !editForm.email.trim()}
           >
             Save
           </button>
@@ -241,12 +291,16 @@ function App() {
         <DialogTitle>Confirmar Exclusão</DialogTitle>
         <DialogContent>
           <p>
-            Tem certeza que deseja deletar o usuário <strong>{userToDelete?.name}</strong>? Esta ação é irreversível.
+            Tem certeza que deseja deletar o usuário{" "}
+            <strong>{userToDelete?.name}</strong>? Esta ação é irreversível.
           </p>
         </DialogContent>
 
         <DialogActions>
-          <button className="btn-danger" onClick={() => setOpenDeleteConfirm(false)}>
+          <button
+            className="btn-danger"
+            onClick={() => setOpenDeleteConfirm(false)}
+          >
             Cancelar
           </button>
           <button

@@ -125,6 +125,62 @@ h1 {
   grid-template-columns: 1fr;
 }
 
+/* Filter Section */
+.filter-section {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  font-size: 14px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.btn-clear-filter {
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    background 0.2s,
+    transform 0.12s ease;
+  white-space: nowrap;
+}
+
+.btn-clear-filter:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.btn-clear-filter:active {
+  transform: translateY(1px);
+}
+
 input {
   flex: 1;
   min-width: 200px;
@@ -296,6 +352,19 @@ button:disabled {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .btn-clear-filter {
+    width: 100%;
   }
 
   h1 {
