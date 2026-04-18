@@ -33,6 +33,11 @@ function App() {
     fetchUsers();
   };
 
+  const deleteUser = async (id: number) => {
+    await api.delete(`/users/${id}`);
+    fetchUsers();
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -64,6 +69,7 @@ function App() {
               <TableCell>ID</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Email</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
 
@@ -73,6 +79,14 @@ function App() {
                 <TableCell>{user.id}</TableCell>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <button
+                    className="btn-danger"
+                    onClick={() => deleteUser(user.id)}
+                  >
+                    Delete
+                  </button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
