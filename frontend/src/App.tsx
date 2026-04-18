@@ -1,407 +1,91 @@
-import { useEffect, useState } from "react";
-import { api } from "./services/api";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Snackbar,
-  Alert,
-} from "@mui/material";
-
-type User = {
-  id: number;
-  name: string;
-  email: string;
-};
-
-interface CreateFormState {
-  name: string;
-  email: string;
-}
-
-interface EditFormState {
-  name: string;
-  email: string;
-}
+import { AppToast } from "./components/AppToast";
+import { DeleteConfirmDialog } from "./components/DeleteConfirmDialog";
+import { EditUserDialog } from "./components/EditUserDialog";
+import { UsersHeaderCard } from "./components/UsersHeaderCard";
+import { UsersPagination } from "./components/UsersPagination";
+import { UsersTable } from "./components/UsersTable";
+import { useUsers } from "./hooks/useUsers";
 
 function App() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [createForm, setCreateForm] = useState<CreateFormState>({
-    name: "",
-    email: "",
-  });
-  const [editForm, setEditForm] = useState<EditFormState>({
-    name: "",
-    email: "",
-  });
-  const [searchFilter, setSearchFilter] = useState("");
-  const [openEdit, setOpenEdit] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastSeverity, setToastSeverity] = useState<"success" | "error">(
-    "success",
-  );
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  const fetchUsers = async (filter: string = "") => {
-    const params = filter ? { name: filter } : {};
-    const response = await api.get("/users", { params });
-    const sortedUsers = (response.data as User[]).sort((a, b) => a.id - b.id);
-    setUsers(sortedUsers);
-  };
-
-  useEffect(() => {
-    fetchUsers(searchFilter);
-    setCurrentPage(1); // Reset para página 1 quando filtro mudar
-  }, [searchFilter]);
-
-  const getPaginatedUsers = () => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return users.slice(startIndex, endIndex);
-  };
-
-  const getTotalPages = () => {
-    return Math.ceil(users.length / itemsPerPage);
-  };
-
-  const handleChangePage = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
-
-  const handleChangeItemsPerPage = (value: number) => {
-    setItemsPerPage(value);
-    setCurrentPage(1); // Reset para página 1
-  };
-
-  const showToast = (
-    message: string,
-    severity: "success" | "error" = "success",
-  ) => {
-    setToastMessage(message);
-    setToastSeverity(severity);
-    setToastOpen(true);
-  };
-
-  const createUser = async () => {
-    try {
-      await api.post("/users", {
-        name: createForm.name,
-        email: createForm.email,
-      });
-      setCreateForm({ name: "", email: "" });
-      fetchUsers(searchFilter);
-      showToast("Usuário criado com sucesso!", "success");
-    } catch (error) {
-      showToast("Erro ao criar usuário", "error");
-    }
-  };
-
-  const handleOpenDeleteConfirm = (user: User) => {
-    setUserToDelete(user);
-    setOpenDeleteConfirm(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!userToDelete) return;
-
-    try {
-      await api.delete(`/users/${userToDelete.id}`);
-      setOpenDeleteConfirm(false);
-      setUserToDelete(null);
-      fetchUsers(searchFilter);
-      showToast("Usuário deletado com sucesso!", "success");
-    } catch (error) {
-      showToast("Erro ao deletar usuário", "error");
-    }
-  };
-
-  const handleOpenEdit = (user: User) => {
-    setSelectedUserId(user.id);
-    setEditForm({ name: user.name, email: user.email });
-    setOpenEdit(true);
-  };
-
-  const handleUpdate = async () => {
-    if (!selectedUserId) return;
-
-    try {
-      await api.patch(`/users/${selectedUserId}`, {
-        name: editForm.name,
-        email: editForm.email,
-      });
-
-      setOpenEdit(false);
-      fetchUsers(searchFilter);
-      showToast("Usuário atualizado com sucesso!", "success");
-    } catch (error) {
-      showToast("Erro ao atualizar usuário", "error");
-    }
-  };
-
-  const handleClearFilter = () => {
-    setSearchFilter("");
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const {
+    users,
+    createForm,
+    editForm,
+    searchFilter,
+    openEdit,
+    openDeleteConfirm,
+    userToDelete,
+    toastOpen,
+    toastMessage,
+    toastSeverity,
+    currentPage,
+    itemsPerPage,
+    paginatedUsers,
+    totalPages,
+    setCreateForm,
+    setEditForm,
+    setSearchFilter,
+    createUser,
+    handleOpenDeleteConfirm,
+    closeDeleteConfirm,
+    handleConfirmDelete,
+    handleOpenEdit,
+    closeEditDialog,
+    handleUpdate,
+    handleClearFilter,
+    closeToast,
+    handleChangePage,
+    handleChangeItemsPerPage,
+  } = useUsers();
 
   return (
     <main className="container">
-      <Paper elevation={0} className="hero-card">
-        <div className="hero-head">
-          <div>
-            <h1 className="app-title">User Manager</h1>
-            <p className="app-subtitle">
-              Gerencie os cadastros com uma visualizacao simples e rapida.
-            </p>
-          </div>
-          <span className="users-count">{users.length} usuarios</span>
-        </div>
+      <UsersHeaderCard
+        usersCount={users.length}
+        createForm={createForm}
+        searchFilter={searchFilter}
+        onCreateFormChange={setCreateForm}
+        onCreateUser={createUser}
+        onSearchFilterChange={setSearchFilter}
+        onClearFilter={handleClearFilter}
+      />
 
-        <div className="form form--compact">
-          <input
-            placeholder="name"
-            value={createForm.name}
-            onChange={(e) =>
-              setCreateForm({ ...createForm, name: e.target.value })
-            }
-          />
+      <UsersTable
+        users={paginatedUsers}
+        onEditUser={handleOpenEdit}
+        onDeleteUser={handleOpenDeleteConfirm}
+      />
 
-          <input
-            placeholder="email"
-            value={createForm.email}
-            onChange={(e) =>
-              setCreateForm({ ...createForm, email: e.target.value })
-            }
-          />
+      <UsersPagination
+        usersLength={users.length}
+        currentPage={currentPage}
+        itemsPerPage={itemsPerPage}
+        totalPages={totalPages}
+        onChangePage={handleChangePage}
+        onChangeItemsPerPage={handleChangeItemsPerPage}
+      />
 
-          <button
-            onClick={createUser}
-            disabled={!createForm.name.trim() || !createForm.email.trim()}
-          >
-            Create user
-          </button>
-        </div>
-
-        <div className="filter-section">
-          <input
-            className="search-input"
-            placeholder="Buscar por nome..."
-            value={searchFilter}
-            onChange={(e) => setSearchFilter(e.target.value)}
-          />
-          {searchFilter && (
-            <button className="btn-clear-filter" onClick={handleClearFilter}>
-              Limpar
-            </button>
-          )}
-        </div>
-      </Paper>
-
-      <TableContainer component={Paper} className="users-table">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell className="col-id">ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell className="col-actions">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {users.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} align="center" className="empty-cell">
-                  Nenhum usuario cadastrado ainda.
-                </TableCell>
-              </TableRow>
-            ) : (
-              getPaginatedUsers().map((user) => (
-                <TableRow key={user.id} hover>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <div className="row-actions">
-                      <Button
-                        className="btn-edit"
-                        onClick={() => handleOpenEdit(user)}
-                        variant="contained"
-                        size="small"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        className="btn-danger"
-                        onClick={() => handleOpenDeleteConfirm(user)}
-                        variant="contained"
-                        size="small"
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <div className="pagination-section">
-        <div className="pagination-info">
-          Mostrando{" "}
-          {users.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} a{" "}
-          {Math.min(currentPage * itemsPerPage, users.length)} de {users.length}{" "}
-          usuarios
-        </div>
-
-        <div className="pagination-controls">
-          <div className="items-per-page">
-            <label>Por página:</label>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => handleChangeItemsPerPage(Number(e.target.value))}
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-            </select>
-          </div>
-
-          <div className="page-buttons">
-            <button
-              className="pagination-btn"
-              onClick={() => handleChangePage(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              ← Anterior
-            </button>
-
-            <div className="page-indicator">
-              Página {currentPage} de {getTotalPages()}
-            </div>
-
-            <button
-              className="pagination-btn"
-              onClick={() => handleChangePage(currentPage + 1)}
-              disabled={currentPage === getTotalPages()}
-            >
-              Próxima →
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <Dialog
+      <EditUserDialog
         open={openEdit}
-        onClose={() => setOpenEdit(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Edit User</DialogTitle>
-        <DialogContent>
-          <div className="form form--dialog">
-            <input
-              placeholder="name"
-              value={editForm.name}
-              onChange={(e) =>
-                setEditForm({ ...editForm, name: e.target.value })
-              }
-            />
+        editForm={editForm}
+        onClose={closeEditDialog}
+        onEditFormChange={setEditForm}
+        onSave={handleUpdate}
+      />
 
-            <input
-              placeholder="email"
-              value={editForm.email}
-              onChange={(e) =>
-                setEditForm({ ...editForm, email: e.target.value })
-              }
-            />
-          </div>
-        </DialogContent>
-
-        <DialogActions>
-          <button className="btn-danger" onClick={() => setOpenEdit(false)}>
-            Cancel
-          </button>
-          <button
-            onClick={handleUpdate}
-            disabled={!editForm.name.trim() || !editForm.email.trim()}
-          >
-            Save
-          </button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
+      <DeleteConfirmDialog
         open={openDeleteConfirm}
-        onClose={() => setOpenDeleteConfirm(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Confirmar Exclusão</DialogTitle>
-        <DialogContent>
-          <p>
-            Tem certeza que deseja deletar o usuário{" "}
-            <strong>{userToDelete?.name}</strong>? Esta ação é irreversível.
-          </p>
-        </DialogContent>
+        userName={userToDelete?.name}
+        onClose={closeDeleteConfirm}
+        onConfirm={handleConfirmDelete}
+      />
 
-        <DialogActions>
-          <button
-            className="btn-danger"
-            onClick={() => setOpenDeleteConfirm(false)}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleConfirmDelete}
-            style={{ background: "#ef4444", color: "white" }}
-          >
-            Deletar
-          </button>
-        </DialogActions>
-      </Dialog>
-
-      <Snackbar
+      <AppToast
         open={toastOpen}
-        autoHideDuration={4000}
-        onClose={() => setToastOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
-          onClose={() => setToastOpen(false)}
-          severity={toastSeverity}
-          sx={{
-            width: "100%",
-            backgroundColor:
-              toastSeverity === "success" ? "#22c55e" : "#ef4444",
-            color: "#ffffff",
-            fontWeight: 600,
-            fontSize: "14px",
-            "& .MuiAlert-icon": {
-              color: "#ffffff",
-            },
-          }}
-        >
-          {toastMessage}
-        </Alert>
-      </Snackbar>
+        message={toastMessage}
+        severity={toastSeverity}
+        onClose={closeToast}
+      />
     </main>
   );
 }

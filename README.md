@@ -117,7 +117,9 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5433/cruddb
 
 ### Frontend
 
-Não requer variáveis para desenvolvimento local.
+```env
+VITE_API_BASE_URL=http://localhost:3000
+```
 
 ---
 
@@ -309,6 +311,6 @@ npm run lint          # Rodar linter
 
 ---
 
-## 👥 Autores
+## 👥 Autor
 
 Desenvolvido por [@rhuanlucasdev](https://github.com/rhuanlucasdev)
